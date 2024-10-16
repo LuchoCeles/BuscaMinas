@@ -6,22 +6,43 @@ import javax.swing.GroupLayout.Alignment;
 import net.miginfocom.swing.MigLayout;
 
 public class Buscaminas extends JFrame {
-    private final int FILAS = 10;  // Número de filas
-    private final int COLUMNAS = 10;  // Número de columnas
+    private final int FILAS = 9;  // Número de filas
+    private final int COLUMNAS = 9;  // Número de columnas
     private final int NUM_MINAS = 5;  // Número de minas
     private JButton[][] botones;  // Matriz de botones
     private boolean[][] esMina;  // Matriz que indica si hay una mina en cada celda
     private boolean[][] estaMarcada;  // Matriz que indica si la celda está marcada con una bandera
     private int[][] contadorMinasAdyacentes;  // Matriz que almacena las minas adyacentes a cada celda
     
+    //Tamaños del juego
     private JPanel PanelGame;
     private JPanel NavBar;
     
     private int ancho = 400;
     private int largo = 400;
+    
+    private int anchoNavBar = 384;
+    private int largoNavBar = 50;
+    
+    private int anchoPanelGame = 384;
+    private int largoPanelGame = 382;
+    
 
-    private void AjustarTamaños() {
-    	
+    private void AjustarTamaños(int dificultad) {
+    	switch (dificultad) {
+		case 1:
+			    ancho = 400;
+			    largo = 400;
+		        NavBar.setBounds(0, 0, anchoNavBar, largoNavBar);
+			    PanelGame.setBounds(0, 49, anchoPanelGame, largoPanelGame);
+			break;
+		case 2:
+			
+			break;
+		case 3:
+			
+			break;
+		}
     }
     
     public Buscaminas() {
@@ -36,7 +57,7 @@ public class Buscaminas extends JFrame {
         getContentPane().setLayout(null);
         
         NavBar = new JPanel();
-        NavBar.setBounds(0, 0, 584, 50);
+        NavBar.setBounds(0, 0, anchoNavBar, largoNavBar);
         getContentPane().add(NavBar);
         NavBar.setLayout(new GridLayout(0, 3, 0, 0));
         
@@ -67,7 +88,7 @@ public class Buscaminas extends JFrame {
         panelTiempo.add(lblTiempo);
         
         PanelGame = new JPanel();
-        PanelGame.setBounds(0, 49, 584, 511);
+        PanelGame.setBounds(0, 58, 384, 303);
         getContentPane().add(PanelGame);
         PanelGame.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
@@ -81,6 +102,7 @@ public class Buscaminas extends JFrame {
         for (int fila = 0; fila < FILAS; fila++) {
             for (int columna = 0; columna < COLUMNAS; columna++) {
                 JButton boton = new JButton();
+                boton.setText(" ");
                 botones[fila][columna] = boton;
                 PanelGame.add(boton);
 
