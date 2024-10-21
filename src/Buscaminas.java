@@ -1,9 +1,11 @@
-import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
+import javax.swing.*;
 
 public class Buscaminas extends JFrame {
+
     private int FILAS = 9;
     private int COLUMNAS = 9;
     private int NUM_MINAS = 5;
@@ -21,7 +23,7 @@ public class Buscaminas extends JFrame {
     private JPanel PanelGame;
     private JPanel NavBar;
     private JLabel lblContadorBombas;
-    private JLabel lblNivel;
+    private JButton btnDificultad;
     private int contadorMinas = NUM_MINAS;
     private JLabel lblTiempo;
     private Timer timer;
@@ -42,18 +44,17 @@ public class Buscaminas extends JFrame {
         // Crear NavBar
         NavBar = new JPanel(new GridLayout(1, 3));
         lblContadorBombas = new JLabel("Minas: " + contadorMinas);
-        lblNivel = new JLabel("Nivel: " + nivel);
-        JButton btnDificultad = new JButton(new ImageIcon(Buscaminas.class.getResource("/img/LogoCara.png")));
+        btnDificultad = new JButton();
+        btnDificultad.setText("Nivel: " + nivel);
         btnDificultad.addActionListener(e -> cambiarDificultad());
         lblTiempo = new JLabel("Tiempo: 0");
 
         NavBar.add(lblContadorBombas);
         NavBar.add(lblTiempo);
-        NavBar.add(lblNivel);
         NavBar.add(btnDificultad);
         getContentPane().add(NavBar, BorderLayout.NORTH);
 
-        // Crear panel de juego
+        //Panel del Juego
         PanelGame = new JPanel(new GridLayout(FILAS, COLUMNAS));
         inicializarBotones();
         getContentPane().add(PanelGame, BorderLayout.CENTER);
@@ -61,7 +62,6 @@ public class Buscaminas extends JFrame {
         colocarMinas();
         contarMinasAdyacentes();
 
-        // Inicializar el temporizador
         iniciarTiempo();
     }
 
@@ -72,12 +72,9 @@ public class Buscaminas extends JFrame {
         NUM_MINAS = MINAS_NIVELES[nivel - 1];
         contadorMinas = NUM_MINAS;
 
-        // Ajustar el tamaño de la ventana
         setSize(ANCHOS_VENTANA[nivel - 1], ALTOS_VENTANA[nivel - 1]);
-        
-        lblNivel.setText("Nivel: " +  nivel);
+        btnDificultad.setText("Nivel: " + nivel);
 
-        // Reiniciar la interfaz y el juego
         getContentPane().remove(PanelGame);
         PanelGame = new JPanel(new GridLayout(FILAS, COLUMNAS));
         inicializarBotones();
@@ -87,6 +84,21 @@ public class Buscaminas extends JFrame {
 
         reiniciarJuego();
     }
+
+    private boolean verificarVictoria() {
+        for (int fila = 0; fila < FILAS; fila++) {
+            for (int columna = 0; columna < COLUMNAS; columna++) {
+                if (esMina[fila][columna] && !estaMarcada[fila][columna]) {
+                    return false; // Si hay una mina que no ha sido marcada, no has ganado.
+                }
+                if (!esMina[fila][columna] && (estaMarcada[fila][columna] || botones[fila][columna].isEnabled())) {
+                    return false; // Si una celda no es mina y está marcada o no ha sido revelada, no has ganado.
+                }
+            }
+        }
+        return true;
+    }
+
 
     private void inicializarBotones() {
         PanelGame.removeAll();
@@ -124,7 +136,6 @@ public class Buscaminas extends JFrame {
             }
         }
     }
-
 
     private void colocarMinas() {
         Random random = new Random();
@@ -188,8 +199,15 @@ public class Buscaminas extends JFrame {
                     }
                 }
             }
+
+            if (verificarVictoria()) {
+                timer.stop();
+                JOptionPane.showMessageDialog(this, "¡Has ganado!");
+                reiniciarJuego();
+            }
         }
     }
+
 
     private void iniciarTiempo() {
         timer = new Timer(1000, e -> {
@@ -205,12 +223,17 @@ public class Buscaminas extends JFrame {
                 botones[fila][columna].setText("");
                 estaMarcada[fila][columna] = false;
                 contadorMinas++;
-                lblContadorBombas.setText("Minas: " + contadorMinas);
             } else {
                 botones[fila][columna].setText("⚑");
                 estaMarcada[fila][columna] = true;
                 contadorMinas--;
-                lblContadorBombas.setText("Minas: " + contadorMinas);
+            }
+            lblContadorBombas.setText("Minas: " + contadorMinas);
+
+            if (verificarVictoria()) {
+                timer.stop(); // Detener el temporizador
+                JOptionPane.showMessageDialog(this, "¡Has ganado!");
+                reiniciarJuego();
             }
         }
     }
