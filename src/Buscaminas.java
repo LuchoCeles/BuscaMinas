@@ -2,127 +2,112 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
-import javax.swing.GroupLayout.Alignment;
-import net.miginfocom.swing.MigLayout;
 
 public class Buscaminas extends JFrame {
-    private final int FILAS = 9;  // Número de filas
-    private final int COLUMNAS = 9;  // Número de columnas
-    private final int NUM_MINAS = 5;  // Número de minas
-    private JButton[][] botones;  // Matriz de botones
-    private boolean[][] esMina;  // Matriz que indica si hay una mina en cada celda
-    private boolean[][] estaMarcada;  // Matriz que indica si la celda está marcada con una bandera
-    private int[][] contadorMinasAdyacentes;  // Matriz que almacena las minas adyacentes a cada celda
-    
-    //Tamaños del juego
+    private int FILAS = 9;
+    private int COLUMNAS = 9;
+    private int NUM_MINAS = 5;
+    private int nivel = 1;
+    private final int[] FILAS_NIVELES = {10, 20, 20};
+    private final int[] COLUMNAS_NIVELES = {10, 20, 20};
+    private final int[] MINAS_NIVELES = {5, 20, 45};
+    private final int[] ANCHOS_VENTANA = {450, 1000, 1000};
+    private final int[] ALTOS_VENTANA = {450, 1000, 1000};
+
+    private JButton[][] botones;
+    private boolean[][] esMina;
+    private boolean[][] estaMarcada;
+    private int[][] contadorMinasAdyacentes;
     private JPanel PanelGame;
     private JPanel NavBar;
-    
-    private int ancho = 400;
-    private int largo = 400;
-    
-    private int anchoNavBar = 384;
-    private int largoNavBar = 50;
-    
-    private int anchoPanelGame = 384;
-    private int largoPanelGame = 382;
-    
+    private JLabel lblContadorBombas;
+    private JLabel lblNivel;
+    private int contadorMinas = NUM_MINAS;
+    private JLabel lblTiempo;
+    private Timer timer;
+    private int tiempoSegundos;
 
-    private void AjustarTamaños(int dificultad) {
-    	switch (dificultad) {
-		case 1:
-			    ancho = 400;
-			    largo = 400;
-		        NavBar.setBounds(0, 0, anchoNavBar, largoNavBar);
-			    PanelGame.setBounds(0, 49, anchoPanelGame, largoPanelGame);
-			break;
-		case 2:
-			
-			break;
-		case 3:
-			
-			break;
-		}
-    }
-    
     public Buscaminas() {
         botones = new JButton[FILAS][COLUMNAS];
         esMina = new boolean[FILAS][COLUMNAS];
         estaMarcada = new boolean[FILAS][COLUMNAS];
         contadorMinasAdyacentes = new int[FILAS][COLUMNAS];
+        tiempoSegundos = 0;
 
         setTitle("Buscaminas");
-        setSize(ancho, largo);
+        setSize(ANCHOS_VENTANA[0], ALTOS_VENTANA[0]);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        getContentPane().setLayout(null);
-        
-        NavBar = new JPanel();
-        NavBar.setBounds(0, 0, anchoNavBar, largoNavBar);
-        getContentPane().add(NavBar);
-        NavBar.setLayout(new GridLayout(0, 3, 0, 0));
-        
-        JPanel panelContador = new JPanel();
-        NavBar.add(panelContador);
-        
-        JLabel lblContadorBombas = new JLabel("New label");
-        panelContador.add(lblContadorBombas);
-        
-        JPanel panelBtn = new JPanel();
-        NavBar.add(panelBtn);
-        panelBtn.setLayout(new GridLayout(0, 3, 0, 0));
-        
-        JPanel panel = new JPanel();
-        panelBtn.add(panel);
-        
-        JButton btnDificultad = new JButton("");
-        btnDificultad.setIcon(new ImageIcon(Buscaminas.class.getResource("/img/LogoCara.png")));
-        panelBtn.add(btnDificultad);
-        
-        JPanel panel_1 = new JPanel();
-        panelBtn.add(panel_1);
-        
-        JPanel panelTiempo = new JPanel();
-        NavBar.add(panelTiempo);
-        
-        JLabel lblTiempo = new JLabel("New label");
-        panelTiempo.add(lblTiempo);
-        
-        PanelGame = new JPanel();
-        PanelGame.setBounds(0, 58, 384, 303);
-        getContentPane().add(PanelGame);
-        PanelGame.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        getContentPane().setLayout(new BorderLayout());
 
+        // Crear NavBar
+        NavBar = new JPanel(new GridLayout(1, 3));
+        lblContadorBombas = new JLabel("Minas: " + contadorMinas);
+        lblNivel = new JLabel("Nivel: " + nivel);
+        JButton btnDificultad = new JButton(new ImageIcon(Buscaminas.class.getResource("/img/LogoCara.png")));
+        btnDificultad.addActionListener(e -> cambiarDificultad());
+        lblTiempo = new JLabel("Tiempo: 0");
+
+        NavBar.add(lblContadorBombas);
+        NavBar.add(btnDificultad);
+        NavBar.add(lblNivel);
+        NavBar.add(lblTiempo);
+        getContentPane().add(NavBar, BorderLayout.NORTH);
+
+        // Crear panel de juego
+        PanelGame = new JPanel(new GridLayout(FILAS, COLUMNAS));
         inicializarBotones();
+        getContentPane().add(PanelGame, BorderLayout.CENTER);
+
         colocarMinas();
         contarMinasAdyacentes();
+
+        // Inicializar el temporizador
+        iniciarTiempo();
     }
 
-    // Inicializa los botones y añade listeners
+    private void cambiarDificultad() {
+        nivel = (nivel % 3) + 1;
+        FILAS = FILAS_NIVELES[nivel - 1];
+        COLUMNAS = COLUMNAS_NIVELES[nivel - 1];
+        NUM_MINAS = MINAS_NIVELES[nivel - 1];
+        contadorMinas = NUM_MINAS;
+
+        // Ajustar el tamaño de la ventana
+        setSize(ANCHOS_VENTANA[nivel - 1], ALTOS_VENTANA[nivel - 1]);
+        
+        lblNivel.setText("Nivel: " +  nivel);
+
+        // Reiniciar la interfaz y el juego
+        getContentPane().remove(PanelGame);
+        PanelGame = new JPanel(new GridLayout(FILAS, COLUMNAS));
+        inicializarBotones();
+        getContentPane().add(PanelGame, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+
+        reiniciarJuego();
+    }
+
     private void inicializarBotones() {
+        botones = new JButton[FILAS][COLUMNAS];
+        esMina = new boolean[FILAS][COLUMNAS];
+        estaMarcada = new boolean[FILAS][COLUMNAS];
+        contadorMinasAdyacentes = new int[FILAS][COLUMNAS];
+
         for (int fila = 0; fila < FILAS; fila++) {
             for (int columna = 0; columna < COLUMNAS; columna++) {
-                JButton boton = new JButton();
-                boton.setText(" ");
+                JButton boton = new JButton("");
                 botones[fila][columna] = boton;
                 PanelGame.add(boton);
-
                 int filaFinal = fila;
-                int conlumnaFinal = columna;
-                
-                // Agregar acción al botón cuando es presionado (clic izquierdo)
-                boton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        revelarCelda(filaFinal, conlumnaFinal);
-                    }
-                });
+                int columnaFinal = columna;
 
-                // Agregar un MouseListener para detectar clic derecho
+                boton.addActionListener(e -> revelarCelda(filaFinal, columnaFinal));
                 boton.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         if (SwingUtilities.isRightMouseButton(e)) {
-                            marcarCelda(filaFinal, conlumnaFinal);
+                            marcarCelda(filaFinal, columnaFinal);
                         }
                     }
                 });
@@ -130,14 +115,12 @@ public class Buscaminas extends JFrame {
         }
     }
 
-    // Coloca minas aleatoriamente en el tablero
     private void colocarMinas() {
         Random random = new Random();
         int minasColocadas = 0;
         while (minasColocadas < NUM_MINAS) {
             int fila = random.nextInt(FILAS);
             int columna = random.nextInt(COLUMNAS);
-
             if (!esMina[fila][columna]) {
                 esMina[fila][columna] = true;
                 minasColocadas++;
@@ -145,19 +128,15 @@ public class Buscaminas extends JFrame {
         }
     }
 
-    // Cuenta las minas adyacentes para cada celda
     private void contarMinasAdyacentes() {
         for (int fila = 0; fila < FILAS; fila++) {
             for (int columna = 0; columna < COLUMNAS; columna++) {
                 if (!esMina[fila][columna]) {
                     int contador = 0;
-
-                    // Revisar todas las celdas adyacentes
                     for (int i = -1; i <= 1; i++) {
                         for (int j = -1; j <= 1; j++) {
                             int nuevaFila = fila + i;
                             int nuevaColumna = columna + j;
-
                             if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaColumna >= 0 && nuevaColumna < COLUMNAS) {
                                 if (esMina[nuevaFila][nuevaColumna]) {
                                     contador++;
@@ -171,12 +150,11 @@ public class Buscaminas extends JFrame {
         }
     }
 
-    // Revela la celda seleccionada
     private void revelarCelda(int fila, int columna) {
         if (estaMarcada[fila][columna]) {
-            return; // Si está marcada, no puede ser revelada
+            return;
         }
-        
+
         if (esMina[fila][columna]) {
             botones[fila][columna].setText("💣");
             botones[fila][columna].setBackground(Color.RED);
@@ -186,14 +164,11 @@ public class Buscaminas extends JFrame {
             int minasAdyacentes = contadorMinasAdyacentes[fila][columna];
             botones[fila][columna].setText(minasAdyacentes == 0 ? "" : String.valueOf(minasAdyacentes));
             botones[fila][columna].setEnabled(false);
-
-            // Si la celda no tiene minas adyacentes, revela celdas adyacentes
             if (minasAdyacentes == 0) {
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
                         int nuevaFila = fila + i;
                         int nuevaColumna = columna + j;
-
                         if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaColumna >= 0 && nuevaColumna < COLUMNAS) {
                             if (botones[nuevaFila][nuevaColumna].isEnabled()) {
                                 revelarCelda(nuevaFila, nuevaColumna);
@@ -205,22 +180,30 @@ public class Buscaminas extends JFrame {
         }
     }
 
-    // Marca o desmarca una celda como posible mina
+    private void iniciarTiempo() {
+        timer = new Timer(1000, e -> {
+            tiempoSegundos++;
+            lblTiempo.setText("Tiempo: " + tiempoSegundos);
+        });
+        timer.start();
+    }
+
     private void marcarCelda(int fila, int columna) {
         if (botones[fila][columna].isEnabled()) {
             if (estaMarcada[fila][columna]) {
-                // Desmarcar celda
                 botones[fila][columna].setText("");
                 estaMarcada[fila][columna] = false;
+                contadorMinas++;
+                lblContadorBombas.setText("Minas: " + contadorMinas);
             } else {
-                // Marcar celda
                 botones[fila][columna].setText("⚑");
                 estaMarcada[fila][columna] = true;
+                contadorMinas--;
+                lblContadorBombas.setText("Minas: " + contadorMinas);
             }
         }
     }
 
-    // Reinicia el juego
     private void reiniciarJuego() {
         for (int fila = 0; fila < FILAS; fila++) {
             for (int columna = 0; columna < COLUMNAS; columna++) {
@@ -234,6 +217,10 @@ public class Buscaminas extends JFrame {
         }
         colocarMinas();
         contarMinasAdyacentes();
+        tiempoSegundos = 0;
+        lblTiempo.setText("Tiempo: 0");
+        lblContadorBombas.setText("Minas: " + NUM_MINAS);
+        timer.restart();
     }
 
     public static void main(String[] args) {
