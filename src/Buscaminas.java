@@ -11,8 +11,8 @@ public class Buscaminas extends JFrame {
     private final int[] FILAS_NIVELES = {10, 20, 20};
     private final int[] COLUMNAS_NIVELES = {10, 20, 20};
     private final int[] MINAS_NIVELES = {5, 20, 45};
-    private final int[] ANCHOS_VENTANA = {450, 1000, 1000};
-    private final int[] ALTOS_VENTANA = {450, 1000, 1000};
+    private final int[] ANCHOS_VENTANA = {450, 900, 1000};
+    private final int[] ALTOS_VENTANA = {450, 900, 1000};
 
     private JButton[][] botones;
     private boolean[][] esMina;
@@ -89,14 +89,24 @@ public class Buscaminas extends JFrame {
     }
 
     private void inicializarBotones() {
+        PanelGame.removeAll();
         botones = new JButton[FILAS][COLUMNAS];
         esMina = new boolean[FILAS][COLUMNAS];
         estaMarcada = new boolean[FILAS][COLUMNAS];
         contadorMinasAdyacentes = new int[FILAS][COLUMNAS];
 
+        int buttonWidth = ANCHOS_VENTANA[nivel - 1] / COLUMNAS;
+        int buttonHeight = (ALTOS_VENTANA[nivel - 1] - 50) / FILAS;
+
         for (int fila = 0; fila < FILAS; fila++) {
             for (int columna = 0; columna < COLUMNAS; columna++) {
                 JButton boton = new JButton("");
+                boton.setBounds(columna * buttonWidth, fila * buttonHeight, buttonWidth, buttonHeight);
+
+                // Ajustar el tamaño de la fuente
+                float fontSize = Math.min(buttonWidth, buttonHeight) / 5f;
+                boton.setFont(boton.getFont().deriveFont(fontSize));
+
                 botones[fila][columna] = boton;
                 PanelGame.add(boton);
                 int filaFinal = fila;
@@ -114,6 +124,7 @@ public class Buscaminas extends JFrame {
             }
         }
     }
+
 
     private void colocarMinas() {
         Random random = new Random();
