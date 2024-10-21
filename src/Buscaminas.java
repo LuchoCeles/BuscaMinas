@@ -48,9 +48,9 @@ public class Buscaminas extends JFrame {
         lblTiempo = new JLabel("Tiempo: 0");
 
         NavBar.add(lblContadorBombas);
-        NavBar.add(btnDificultad);
-        NavBar.add(lblNivel);
         NavBar.add(lblTiempo);
+        NavBar.add(lblNivel);
+        NavBar.add(btnDificultad);
         getContentPane().add(NavBar, BorderLayout.NORTH);
 
         // Crear panel de juego
