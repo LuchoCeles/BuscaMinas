@@ -116,7 +116,7 @@ public class Buscaminas extends JFrame {
                 boton.setBounds(columna * buttonWidth, fila * buttonHeight, buttonWidth, buttonHeight);
 
                 // Ajustar el tamaño de la fuente
-                float fontSize = Math.min(buttonWidth, buttonHeight) / 5f;
+                float fontSize = Math.min(buttonWidth, buttonHeight) / 5f; //asi de chico y se hace muy grande las ventanas
                 boton.setFont(boton.getFont().deriveFont(fontSize));
 
                 botones[fila][columna] = boton;
@@ -231,7 +231,7 @@ public class Buscaminas extends JFrame {
             lblContadorBombas.setText("Minas: " + contadorMinas);
 
             if (verificarVictoria()) {
-                timer.stop(); // Detener el temporizador
+                timer.stop();
                 JOptionPane.showMessageDialog(this, "¡Has ganado!");
                 reiniciarJuego();
             }
